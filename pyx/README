@@ -1,0 +1,4 @@
+Some test scripts with pyx:
+- inset: test a plot with a smaller inset
+- placeholder: generate an empty eps file to use as a placeholder in
+  latex documents
