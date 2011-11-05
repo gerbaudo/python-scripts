@@ -1,0 +1,13 @@
+This script produces a simple calendar for a A4 of Letter format sheet
+with 4x3 cells, one for each day. I use this to plan and keep track of
+my work.
+
+This script requires 'datetime' and 'pyx'. See the comments in
+simpleCal.py for its usage.
+
+davide.gerbaudo@gmail.com, 2011
+
+-----------
+| License |
+-----------
+GPLv3 (http://www.gnu.org/licenses/gpl.html)
