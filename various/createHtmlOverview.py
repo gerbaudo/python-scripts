@@ -1,0 +1,188 @@
+#!/bin/env python
+#
+# A simple script to create an html page with an overview of the directory tree.
+# This script walks recursively the directory tree and for each sub-directory
+# it creates an 'index.html' page which will contain:
+# - an overview of the subdirectories
+# - a dump of the text files
+# - a table (currently with two items per row) with all the images scaled to
+#   some predefined size (currently 400px X 300px)
+#
+# davide.gerbaudo@gmail.com, Jan2011
+#
+# -----------
+# | License |    GPLv3 (http://www.gnu.org/licenses/gpl.html)
+# -----------
+#
+# Todo:
+# - add an option not to overwrite the current index.html, or to skip
+#   the directories that already have an index.html file.
+# - pass the hardcoded parameters on the command line.
+# - indent the html based on the directory depth
+
+import os,sys,commands
+
+class Directory:
+    """A directory object which knows its name, parent, and has a list of daughters.
+    The directory might also have a short description associated with it,
+    saying shortly what its contets are."""
+    def __init__(self,name,parent="None",shortDescriptionFile="shortdescription.txt",verbose=False):
+        "Constructor"
+        self.name_  = name
+        if not parent=="None":
+            self.parent_ = parent
+        self.verbose_ = verbose
+        self.shortDescFile_ = shortDescriptionFile
+        self.shortdescription_ = ""
+        self.readDescFile(self.getBasePath()+"/"+self.shortDescFile_)
+        self.populateDaughterList()
+    def depth(self):
+        "depth in the directory tree"
+        if not hasattr(self,"parent_"): return 0
+        else: return self.parent_.depth()+1
+    def readDescFile(self, filename):
+        "Read the file containing the one-line description of the directory's contents"
+        if os.path.isfile(filename):
+            self.description_ = open(filename).read()
+            print self.description_
+            if self.verbose_: print self.description_
+        elif self.verbose_:
+            print "Directory '%s' does not have a description file '%s'" % (self.name_, shortDescriptionFile)
+    def populateDaughterList(self):
+        "Populate the list of daughters directories"
+        self.daughters_ = []
+        basepath = self.getBasePath()
+        names = os.listdir(basepath)
+        for name in names:
+            if os.path.isdir(basepath+'/'+name):
+                self.daughters_.append(Directory(name,self,self.shortDescFile_,self.verbose_))
+        if self.verbose_:
+            print "%s contains %d directories" % (self.name_,len(self.daughters_))
+    def getBasePath(self):
+        "Return a basepath by asking the parents where we are"
+        if not hasattr(self,"parent_"):
+            return "./"
+        else:
+            return self.parent_.getBasePath()+"/"+self.name_
+    def htmlSubDirectoryTree(self,relativeTo=None):
+        """Print an html unnumbered list showing the subdirectories of this directory.
+        If relativeTo=="", the links will be relative to this directory.
+        Otherwise they will be relative to the provided basepath."""
+        if self.verbose_:
+            print "calling %s.htmlSubDirectoryTree " % (self.name_)
+        text = ""
+        # if this dir does not have a parent, then it needs to open an 'ul' on its own
+        if not hasattr(self,"parent_"): text +=  "<ul>\n"
+        if hasattr(self, "daughters_") and len(self.daughters_):
+            text += "<ul>\n"
+            for daughter in self.daughters_:
+                text += "<li>\n"
+                if not relativeTo:
+                    text += "<a href=\"%s/\">%s</a>\n" % (daughter.name_, daughter.name_)
+                elif relativeTo.rstrip().rstrip('/').endswith(self.name_):
+                    text += "<a href=\"%s/%s\">%s</a>\n" % (relativeTo, daughter.name_, daughter.name_)
+                else:
+                    text += "<a href=\"%s/%s/%s\">%s</a>\n" % (relativeTo, self.name_, daughter.name_, daughter.name_)
+                if hasattr(daughter,"description_") and len(daughter.description_):
+                    text += daughter.description_
+                text += "</li>\n"
+                # when we are done with the 1st gen daughters, do the same recursively
+                if relativeTo: text += daughter.htmlSubDirectoryTree(relativeTo+"/"+self.name_+"/"+daughter.name_)
+                else:          text += daughter.htmlSubDirectoryTree(daughter.name_)
+            text += "</ul>\n"
+        # if this dir does not have a parent, then it needs to close an 'ul' on its own
+        if not hasattr(self,"parent_"): text +=  "</ul>\n"
+        return text
+    def htmlHeader(self):
+        "Print the html header"
+        return '\n'.join(['<html>',
+                          '<head>',
+                          '   <title>Directory tree</title>',
+                          '<!-- Generated with createHtmlOverview.py -->',
+                          '</head>',
+                          '<body>'])
+    def htmlFooter(self):
+        "Print the html footer"
+        return '\n'.join(['</body>',
+                          '</html>'])
+    def findImages(self):
+        "Find the images in this directory"
+        imgExtensions = ["png", "jpg", "gif"]
+        imgFiles = []
+        for ext in imgExtensions:
+            files = os.listdir(self.getBasePath())
+            for file in files:
+                if file.count(ext) and not file.count("No such file"):
+                    imgFiles.append(file)
+        return imgFiles
+    def findTxtFiles(self):
+        "find the txt files in this directory"
+        txtExtensions = ["txt"]
+        txtFiles = []
+        files = os.listdir(self.getBasePath())
+        for ext in txtExtensions:
+            for file in files:
+                if file.count(ext) \
+                       and not file.count("No such file") \
+                       and not file == self.shortDescFile_:
+                    txtFiles.append(file)
+        return txtFiles
+    def getImgTable(self):
+        "Provide an html table showing the images of this directory"
+        nColumns = 2
+        thumbWidth=400
+        thumbHeight=300
+        #thumbHeight=400
+        imgFiles = self.findImages()
+        if self.verbose_: print "%s %d images" % (self.name_,len(imgFiles))
+        if not len(imgFiles): return ""
+        htmlBody = ""    
+        htmlBody += "<table cellspacing=\"10\">\n"
+        htmlBody += "<tr>\n"
+        for imgFile in imgFiles:
+            htmlBody += "<td>\n"
+            htmlBody += "<a href=\"%s\">" % imgFile
+            htmlBody += "<img src=\"%s\" width=\"%d\" height=\"%d\">" % (imgFile, thumbWidth, thumbHeight)
+            htmlBody += "</img>"
+            htmlBody += "<br>\n"
+            htmlBody += "<h4>%s</h4>" % imgFile[:imgFile.rfind(".")]
+            htmlBody += "</a>\n"
+            htmlBody += "</td>\n"
+            if (imgFiles.index(imgFile)+1) % nColumns == 0:
+                htmlBody += "</tr>\n<tr>\n"
+        htmlBody += "</tr>\n"
+        htmlBody += "</table>\n"
+        return htmlBody
+    def getTxtFilesDump(self):
+        "Get a preformatted dump of the txt files in this directory"
+        txtFiles = self.findTxtFiles()
+        text = ""
+        if len(txtFiles)>0:
+            for txtFile in txtFiles:
+                text += "<pre>"
+                text += commands.getoutput("cat %s" % txtFile)
+                text += "</pre>"
+        return text
+    def createHtmlIndex(self, outfile="index.html"):
+        """This function creates an index.html page with (in this order):
+        - a list of the subdirectories
+        - a dump of the txt files in this directory
+        - a table with all the images
+        This function is also called recursively for all subdirectories"""        
+        file = open(self.getBasePath()+"/"+outfile, 'w')
+        file.write(self.htmlHeader()+"\n")
+        file.write(self.htmlSubDirectoryTree()+"\n")
+        file.write(self.getTxtFilesDump()+"\n")
+        file.write(self.getImgTable()+"\n")
+        file.write(self.htmlFooter()+"\n")
+        file.close()
+        if hasattr(self,"daughters_"):
+            for daughter in self.daughters_:
+                daughter.createHtmlIndex()
+
+if __name__ == '__main__':
+    topDir = "./"
+    if len(sys.argv) == 2:
+        topDir = sys.argv[1]
+    dir = Directory(topDir)
+    dir.createHtmlIndex()
