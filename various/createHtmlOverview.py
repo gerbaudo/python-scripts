@@ -44,10 +44,9 @@ class Directory:
         "Read the file containing the one-line description of the directory's contents"
         if os.path.isfile(filename):
             self.description_ = open(filename).read()
-            print self.description_
             if self.verbose_: print self.description_
         elif self.verbose_:
-            print "Directory '%s' does not have a description file '%s'" % (self.name_, shortDescriptionFile)
+            print "Directory '%s' does not have a description file '%s'" % (self.name_, self.shortDescFile_)
     def populateDaughterList(self):
         "Populate the list of daughters directories"
         self.daughters_ = []
@@ -75,24 +74,41 @@ class Directory:
         if not hasattr(self,"parent_"): text +=  "<ul>\n"
         if hasattr(self, "daughters_") and len(self.daughters_):
             text += "<ul>\n"
+            if self.verbose_:
+                print "%s.htmlSubDirectoryTree(relativeTo=%s)" % (self.name_, relativeTo)
             for daughter in self.daughters_:
                 text += "<li>\n"
+                target=""
+                label=""
                 if not relativeTo:
-                    text += "<a href=\"%s/\">%s</a>\n" % (daughter.name_, daughter.name_)
-                elif relativeTo.rstrip().rstrip('/').endswith(self.name_):
-                    text += "<a href=\"%s/%s\">%s</a>\n" % (relativeTo, daughter.name_, daughter.name_)
+                    target="%s/index.html"%daughter.name_
+                    label=daughter.name_
                 else:
-                    text += "<a href=\"%s/%s/%s\">%s</a>\n" % (relativeTo, self.name_, daughter.name_, daughter.name_)
+                    target="%s/%s/index.html"%(relativeTo,daughter.name_)
+                    label=daughter.name_
+                if self.verbose_:print "adding '%s' --> '%s'" % (label,target)
+                text += "<a href=\"%s\">%s</a>\n" % (target,label)
                 if hasattr(daughter,"description_") and len(daughter.description_):
                     text += daughter.description_
                 text += "</li>\n"
                 # when we are done with the 1st gen daughters, do the same recursively
-                if relativeTo: text += daughter.htmlSubDirectoryTree(relativeTo+"/"+self.name_+"/"+daughter.name_)
-                else:          text += daughter.htmlSubDirectoryTree(daughter.name_)
+                relPath=""
+                if not hasattr(self,"parent_"):
+                    relPath="%s/%s"%(self.name_,daughter.name_)
+                elif not relativeTo:
+                    relPath="%s/%s"%(self.name_,daughter.name_)
+                else:
+                    relPath="%s/%s"%(relativeTo,daughter.name_)
+                if self.verbose_:
+                    print "calling htmlSubDirectoryTree for daughter '%s' with relativeTo='%s'"\
+                        %\
+                        (daughter.name_, relPath)
+                text += daughter.htmlSubDirectoryTree(relPath)
             text += "</ul>\n"
         # if this dir does not have a parent, then it needs to close an 'ul' on its own
         if not hasattr(self,"parent_"): text +=  "</ul>\n"
         return text
+
     def htmlHeader(self):
         "Print the html header"
         return '\n'.join(['<html>',
@@ -181,8 +197,8 @@ class Directory:
                 daughter.createHtmlIndex()
 
 if __name__ == '__main__':
-    topDir = "./"
+    topDirPath = "./"
     if len(sys.argv) == 2:
-        topDir = sys.argv[1]
-    dir = Directory(topDir)
-    dir.createHtmlIndex()
+        topDirPath = sys.argv[1]
+    topDir = Directory(topDirPath,verbose=True)
+    topDir.createHtmlIndex()
