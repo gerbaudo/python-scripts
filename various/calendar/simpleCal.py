@@ -67,17 +67,18 @@ def printSimpleCal(firstDay, paperFormat,
 		c.stroke(path.line(0.5*xMax, 0., 0.5*xMax, yMax), [style.linewidth.THin])
 		c.text(0.5*xMax, 0.1*yMax, "line half width")
 
+	day = firstDay
 	for iRow in xrange(nRows):
 		for iCol in xrange(nCols):
 			xPos =      (cellWidth*(iCol+0.5)) + xOffset
 			#yPos = 1. - (cellHeight*(iRow)) + yOffset
 			yPos = yMax - (0.5*headerHeight + cellHeight*(iRow)) + yOffset
 			#label = "x(%d): %f, y(%d): %f" % (iCol, 1.*xPos, iRow, 1.*yPos)
-			weekday = firstDay.strftime("%A")
+			weekday = day.strftime("%A")
 			weekday = weekday[:3]
-			month = firstDay.strftime("%B")
+			month = day.strftime("%B")
 			month = month[:3]
-			label = "%s, %s %s %s" % (weekday, firstDay.strftime("%d"), month, firstDay.strftime("%Y"))
+			label = "%s, %s %s %s" % (weekday, day.strftime("%d"), month, day.strftime("%Y"))
 			c.text(xPos, yPos,  label, [text.parbox(w), text.halign.boxcenter, text.halign.flushcenter, text.valign.middle])
 			if printBleedsMarkers:
 				c.stroke(path.line(xPos, yPos-0.5*headerHeight, xPos, yPos+0.5*headerHeight), [style.linewidth.THin])
@@ -96,7 +97,7 @@ def printSimpleCal(firstDay, paperFormat,
 				# below text
 				yPos -= 0.5 * headerHeight
 				c.stroke(path.line(0., yPos, xMax, yPos), [style.linewidth.THin])
-			firstDay += timedelta(days=1)
+			day += timedelta(days=1)
 
 	outFileName="cal-%s" % firstDay.strftime("%Y-%m-%d")
 	if verbose: print "saving output file %s.[ext]" % outFileName
