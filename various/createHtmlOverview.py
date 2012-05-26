@@ -18,6 +18,7 @@
 # - add an option not to overwrite the current index.html, or to skip
 #   the directories that already have an index.html file.
 # - pass the hardcoded parameters on the command line.
+# - add link to "one level up"
 # - indent the html based on the directory depth
 
 import os,sys,commands
