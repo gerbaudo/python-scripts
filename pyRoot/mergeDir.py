@@ -15,7 +15,10 @@ class CopiableObj :
         if not original : return
         if not original.Class().InheritsFrom(r.TDirectory.Class()) :
             if parent : parent.cd()
-            clone  = original.Clone()
+            clone = None
+            if original.Class().InheritsFrom(r.TTree.Class()) :
+                clone  = original.CloneTree()
+            else : clone  = original.Clone()
             if hasattr(clone, "SetDirectory") : clone.SetDirectory(parent)
             clone.Write()
         else :
