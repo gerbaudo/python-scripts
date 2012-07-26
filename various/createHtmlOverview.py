@@ -22,16 +22,17 @@
 # - indent the html based on the directory depth
 
 import os,sys,commands
+from optparse import OptionParser
 
 class Directory:
     """A directory object which knows its name, parent, and has a list of daughters.
     The directory might also have a short description associated with it,
     saying shortly what its contets are."""
-    def __init__(self,name,parent="None",shortDescriptionFile="shortdescription.txt",verbose=False):
+    def __init__(self,name,parent='',shortDescriptionFile="shortdescription.txt",verbose=False, overwrite=True):
         "Constructor"
         self.name_  = name
-        if not parent=="None":
-            self.parent_ = parent
+        self.overwrite = overwrite
+        if parent : self.parent_ = parent
         self.verbose_ = verbose
         self.shortDescFile_ = shortDescriptionFile
         self.shortdescription_ = ""
@@ -185,7 +186,8 @@ class Directory:
         - a list of the subdirectories
         - a dump of the txt files in this directory
         - a table with all the images
-        This function is also called recursively for all subdirectories"""        
+        This function is also called recursively for all subdirectories"""
+        if not self.overwrite : return
         file = open(self.getBasePath()+"/"+outfile, 'w')
         file.write(self.htmlHeader()+"\n")
         file.write(self.htmlSubDirectoryTree()+"\n")
@@ -198,8 +200,21 @@ class Directory:
                 daughter.createHtmlIndex()
 
 if __name__ == '__main__':
-    topDirPath = "./"
-    if len(sys.argv) == 2:
-        topDirPath = sys.argv[1]
-    topDir = Directory(topDirPath,verbose=True)
+    parser = OptionParser()
+    parser.add_option("-i", "--input", dest="input",
+                      default="./",
+                      help="top level input directory")
+    parser.add_option("--do-not-overwrite", dest="overwrite",
+                      default=True, action="store_false",
+                      help="do not overwrite existing index.html files")
+    parser.add_option("-v", "--verbose",
+                      action="store_true", dest="verbose", default=False,
+                      help="print status messages to stdout")
+
+    (options, args) = parser.parse_args()
+
+    verbose = options.verbose
+    inputDir = options.input
+    overwrite = options.overwrite
+    topDir = Directory(inputDir,verbose=verbose,overwrite=overwrite)
     topDir.createHtmlIndex()
