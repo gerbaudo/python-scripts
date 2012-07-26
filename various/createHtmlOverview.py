@@ -69,34 +69,33 @@ class Directory:
         text = ""
         # if this dir does not have a parent, then it needs to open an 'ul' on its own
         if not self.parent_ : text +=  "<ul>\n"
-        if hasattr(self, "daughters_") and len(self.daughters_):
-            text += "<ul>\n"
-            for daughter in self.daughters_:
-                text += "<li>\n"
-                target=""
-                label=""
-                if not relativeTo:
-                    target="%s/index.html"%daughter.name_
-                    label=daughter.name_
-                else:
-                    target="%s/%s/index.html"%(relativeTo,daughter.name_)
-                    label=daughter.name_
-                if self.verbose_:print "adding '%s' --> '%s'" % (label,target)
-                text += "<a href=\"%s\">%s</a>\n" % (target,label)
-                if hasattr(daughter,"description_") and len(daughter.description_):
-                    text += daughter.description_
-                text += "</li>\n"
-                # when we are done with the 1st gen daughters, do the same recursively
-                relPath=""
-                if not self.parent_ : relPath="%s/%s"%(self.name_,daughter.name_)
-                elif not relativeTo : relPath="%s/%s"%(self.name_,daughter.name_)
-                else : relPath="%s/%s"%(relativeTo,daughter.name_)
-                if self.verbose_:
-                    print "calling htmlSubDirectoryTree for daughter '%s' with relativeTo='%s'"\
-                        %\
-                        (daughter.name_, relPath)
-                text += daughter.htmlSubDirectoryTree(relPath)
-            text += "</ul>\n"
+        if len(self.daughters_) : text += "<ul>\n"
+        for daughter in self.daughters_:
+            text += "<li>\n"
+            target=""
+            label=""
+            if not relativeTo:
+                target="%s/index.html"%daughter.name_
+                label=daughter.name_
+            else:
+                target="%s/%s/index.html"%(relativeTo,daughter.name_)
+                label=daughter.name_
+            if self.verbose_:print "adding '%s' --> '%s'" % (label,target)
+            text += "<a href=\"%s\">%s</a>\n" % (target,label)
+            if hasattr(daughter,"description_") and len(daughter.description_):
+                text += daughter.description_
+            text += "</li>\n"
+            # when we are done with the 1st gen daughters, do the same recursively
+            relPath=""
+            if not self.parent_ : relPath="%s/%s"%(self.name_,daughter.name_)
+            elif not relativeTo : relPath="%s/%s"%(self.name_,daughter.name_)
+            else : relPath="%s/%s"%(relativeTo,daughter.name_)
+            if self.verbose_:
+                print "calling htmlSubDirectoryTree for daughter '%s' with relativeTo='%s'"\
+                    %\
+                    (daughter.name_, relPath)
+            text += daughter.htmlSubDirectoryTree(relPath)
+        if len(self.daughters_) : text += "</ul>\n"
         # if this dir does not have a parent, then it needs to close an 'ul' on its own
         if not self.parent_ : text +=  "</ul>\n"
         return text
