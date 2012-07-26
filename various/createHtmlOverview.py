@@ -32,7 +32,7 @@ class Directory:
         "Constructor"
         self.name_  = name
         self.overwrite = overwrite
-        if parent : self.parent_ = parent
+        self.parent_ = parent if parent else None
         self.verbose_ = verbose
         self.shortDescFile_ = shortDescriptionFile
         self.shortdescription_ = ""
@@ -40,15 +40,14 @@ class Directory:
         self.populateDaughterList()
     def depth(self):
         "depth in the directory tree"
-        if not hasattr(self,"parent_"): return 0
+        if not self.parent_ : return 0
         else: return self.parent_.depth()+1
     def readDescFile(self, filename):
         "Read the file containing the one-line description of the directory's contents"
         if os.path.isfile(filename):
             self.description_ = open(filename).read()
-            if self.verbose_: print self.description_
-        elif self.verbose_:
-            print "Directory '%s' does not have a description file '%s'" % (self.name_, self.shortDescFile_)
+            if self.verbose_ : print self.description_
+        elif self.verbose_ : print "'%s' without description file '%s'" % (self.name_, self.shortDescFile_)
     def populateDaughterList(self):
         "Populate the list of daughters directories"
         self.daughters_ = []
@@ -57,27 +56,21 @@ class Directory:
         for name in names:
             if os.path.isdir(basepath+'/'+name):
                 self.daughters_.append(Directory(name,self,self.shortDescFile_,self.verbose_))
-        if self.verbose_:
-            print "%s contains %d directories" % (self.name_,len(self.daughters_))
+        if self.verbose_ : print "%s contains %d directories" % (self.name_,len(self.daughters_))
     def getBasePath(self):
         "Return a basepath by asking the parents where we are"
-        if not hasattr(self,"parent_"):
-            return "./"
-        else:
-            return self.parent_.getBasePath()+"/"+self.name_
+        if not self.parent_ : return "./"
+        else: return self.parent_.getBasePath()+"/"+self.name_
     def htmlSubDirectoryTree(self,relativeTo=None):
         """Print an html unnumbered list showing the subdirectories of this directory.
         If relativeTo=="", the links will be relative to this directory.
         Otherwise they will be relative to the provided basepath."""
-        if self.verbose_:
-            print "calling %s.htmlSubDirectoryTree " % (self.name_)
+        if self.verbose_ : print "->%s.htmlSubDirectoryTree(%s)" % (self.name_, relativeTo)
         text = ""
         # if this dir does not have a parent, then it needs to open an 'ul' on its own
-        if not hasattr(self,"parent_"): text +=  "<ul>\n"
+        if not self.parent_ : text +=  "<ul>\n"
         if hasattr(self, "daughters_") and len(self.daughters_):
             text += "<ul>\n"
-            if self.verbose_:
-                print "%s.htmlSubDirectoryTree(relativeTo=%s)" % (self.name_, relativeTo)
             for daughter in self.daughters_:
                 text += "<li>\n"
                 target=""
@@ -95,12 +88,9 @@ class Directory:
                 text += "</li>\n"
                 # when we are done with the 1st gen daughters, do the same recursively
                 relPath=""
-                if not hasattr(self,"parent_"):
-                    relPath="%s/%s"%(self.name_,daughter.name_)
-                elif not relativeTo:
-                    relPath="%s/%s"%(self.name_,daughter.name_)
-                else:
-                    relPath="%s/%s"%(relativeTo,daughter.name_)
+                if not self.parent_ : relPath="%s/%s"%(self.name_,daughter.name_)
+                elif not relativeTo : relPath="%s/%s"%(self.name_,daughter.name_)
+                else : relPath="%s/%s"%(relativeTo,daughter.name_)
                 if self.verbose_:
                     print "calling htmlSubDirectoryTree for daughter '%s' with relativeTo='%s'"\
                         %\
@@ -108,7 +98,7 @@ class Directory:
                 text += daughter.htmlSubDirectoryTree(relPath)
             text += "</ul>\n"
         # if this dir does not have a parent, then it needs to close an 'ul' on its own
-        if not hasattr(self,"parent_"): text +=  "</ul>\n"
+        if not self.parent_ : text +=  "</ul>\n"
         return text
 
     def htmlHeader(self):
@@ -187,8 +177,9 @@ class Directory:
         - a dump of the txt files in this directory
         - a table with all the images
         This function is also called recursively for all subdirectories"""
-        if not self.overwrite : return
-        file = open(self.getBasePath()+"/"+outfile, 'w')
+        filename = self.getBasePath()+"/"+outfile
+        if not self.overwrite and os.path.exists(filename) : return
+        file = open(filename, 'w')
         file.write(self.htmlHeader()+"\n")
         file.write(self.htmlSubDirectoryTree()+"\n")
         file.write(self.getTxtFilesDump()+"\n")
