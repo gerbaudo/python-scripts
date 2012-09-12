@@ -32,7 +32,7 @@ class Directory:
         "Constructor"
         self.name_  = name
         self.overwrite = overwrite
-        self.parent_ = parent if parent else None
+        self.parent_ = parent
         self.verbose_ = verbose
         self.shortDescFile_ = shortDescriptionFile
         self.shortdescription_ = ""
