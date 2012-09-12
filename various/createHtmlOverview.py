@@ -122,18 +122,19 @@ class Directory:
                 if file.count(ext) and not file.count("No such file"):
                     imgFiles.append(file)
         return imgFiles
-    def findTxtFiles(self):
+    def findExtFiles(self, extensions=[]):
         "find the txt files in this directory"
-        txtExtensions = ["txt"]
-        txtFiles = []
+        extFiles = []
         files = os.listdir(self.getBasePath())
-        for ext in txtExtensions:
+        for ext in extensions:
             for file in files:
                 if file.count(ext) \
                        and not file.count("No such file") \
                        and not file == self.shortDescFile_:
-                    txtFiles.append(file)
-        return txtFiles
+                    extFiles.append(file)
+        return extFiles
+    def findTxtFiles(self):
+        return self.findExtFiles(extensions=['txt'])
     def getImgTable(self):
         "Provide an html table showing the images of this directory"
         nColumns = 2
@@ -170,6 +171,10 @@ class Directory:
                 text += commands.getoutput("cat %s" % txtFile)
                 text += "</pre>"
         return text
+    def ulistPdf(self) :
+        pdfFiles = self.findExtFiles(extensions=['pdf'])
+        return '<ul>\n'+'\n'.join(['<li><a href="%s">%s</a></li>'%(f,f) for f in pdfFiles])+'\n</ul>\n'
+
     def createHtmlIndex(self, outfile="index.html"):
         """This function creates an index.html page with (in this order):
         - a list of the subdirectories
@@ -181,6 +186,7 @@ class Directory:
         file = open(filename, 'w')
         file.write(self.htmlHeader()+"\n")
         file.write(self.htmlSubDirectoryTree()+"\n")
+        file.write(self.ulistPdf()+"\n")
         file.write(self.getTxtFilesDump()+"\n")
         file.write(self.getImgTable()+"\n")
         file.write(self.htmlFooter()+"\n")
