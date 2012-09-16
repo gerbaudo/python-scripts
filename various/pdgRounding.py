@@ -2,11 +2,18 @@
 
 # This class implements the pdg rounding rules indicated in
 # section 5.3 of doi:10.1088/0954-3899/33/1/001
-
-# davide.gerbaudo@cern.ch
+#
+# Note: because it uses round (and in general floats), it is affected
+# by the limitations described in
+# http://docs.python.org/library/functions.html#round
+#  and
+# http://dx.doi.org/10.1145/103162.103163
+#
+# davide.gerbaudo@gmail.com
 # September 2012
 
-def pdgRound(value, error, asInt=False) :
+def pdgRound(value, error) :
+    "Given a value and an error, round and format them according to the PDG rules for significant digits"
     def threeDigits(value) :
         "extract the three most significant digits and return them as an int"
         return int(("%.2e"%float(error)).split('e')[0].replace('.','').replace('+','').replace('-',''))
@@ -17,36 +24,39 @@ def pdgRound(value, error, asInt=False) :
         elif threeDigits<950 : return 1
         else : return 2
     def frexp10(value) :
+        "convert to mantissa+exp representation (same as frex, but in base 10)"
         valueStr = ("%e"%float(value)).split('e')
         return float(valueStr[0]), int(valueStr[1])
     def nDigitsValue(expVal, expErr, nDigitsErr) :
         "compute the number of digits we want for the value, assuming we keep nDigitsErr for the error"
         return expVal-expErr+nDigitsErr
-    def formatValue(value, exponent, nDigits) :
-        if exponent<0 : return ('%.'+str(nDigits+(-exponent-1 if (-exponent+1)<nDigits else 0))+'f')%value
-        else : return '%.0f'%round(value, nDigits-(exponent+1))
-    def formatRoundupValue(value, exponent, nDigits) :
-        if exponent<0 : return ('%.'+str(nDigits+(-exponent+1))+'f')%round(value,exponent-1)
-        else : return '%.0f'%round(value, nDigits-(exponent+1))
+    def formatValue(value, exponent, nDigits, extraRound=0) :
+        "Format the value; extraRound is meant for the special case of threeDigits>950"
+        roundAt = nDigits-1-exponent - extraRound
+        #if extraRound : roundAt -= extraRound
+        nDec = roundAt if exponent<nDigits else 0
+        return ('%.'+str(nDec)+'f')%round(value,roundAt)
     tD = threeDigits(error)
     nD = nSignificantDigits(tD)
     expVal, expErr = frexp10(value)[1], frexp10(error)[1]
-    fVal, fErr = '', ''
-    if tD>=950 :
-        fVal = formatRoundupValue(value, expVal, nDigitsValue(expVal, expErr, nD))
-        fErr = formatRoundupValue(error, expErr, nD)
-    else :
-        fVal = formatValue(value, expVal, nDigitsValue(expVal, expErr, nD))
-        fErr = formatValue(error, expErr, nD)
-    return (fVal, fErr)
+    extraRound = 1 if tD>=950 else 0
+    return (formatValue(value, expVal, nDigitsValue(expVal, expErr, nD), extraRound),
+            formatValue(error,expErr, nD, extraRound))
+
 def test(valueError=(0., 0.)) :
     val, err = valueError
     print val,' +/- ',err,' --> ',
     val, err = pdgRound(val, err)
     print ' ',val,' +/- ',err
+
 if __name__=='__main__' :
     for x in [(0.827, 0.119121212)
               ,(0.827, 0.3676565)
               ,(0.827, 0.952)
               ,(1.2345e7, 67890.1e2)
+              ,(1.2345e7, 54321.1e2)
+              ,(1.2345e7, 32100.1e2)
+              ,(0.00827, 0.0000123)
+              ,(0.00827, 0.0000456)
+              ,(0.00827, 0.0000952)
               ] : test(x)
