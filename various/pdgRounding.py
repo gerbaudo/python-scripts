@@ -33,7 +33,6 @@ def pdgRound(value, error) :
     def formatValue(value, exponent, nDigits, extraRound=0) :
         "Format the value; extraRound is meant for the special case of threeDigits>950"
         roundAt = nDigits-1-exponent - extraRound
-        #if extraRound : roundAt -= extraRound
         nDec = roundAt if exponent<nDigits else 0
         return ('%.'+str(nDec)+'f')%round(value,roundAt)
     tD = threeDigits(error)
