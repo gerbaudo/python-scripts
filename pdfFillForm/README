@@ -1,0 +1,28 @@
+These are the instructions to fill in a pdf form from the command line.
+
+Requirements: 
+- pdftk
+- fdfgen
+
+davide.gerbaudo@gmail.com
+September 2012
+
+
+Get fdfgen
+> git clone https://github.com/ccnmtl/fdfgen.git
+
+add it to your python path
+> cd fdfgen
+> export PYTHONPATH=$PYTHONPATH:`pwd`
+> cd -
+
+get from the pdf a list of form names:
+> pdftk /tmp/form1.pdf dump_data_fields
+
+edit test.py, inserting the form names and values. Then run it to
+generate an fdf file
+> ./test.py
+
+Insert the values into the pdf
+> pdftk inputFor1.pdf fill_form data.fdf output outputForm.pdf flatten
+
