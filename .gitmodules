@@ -1,0 +1,3 @@
+[submodule "pdfFillForm/fdfgen"]
+	path = pdfFillForm/fdfgen
+	url = git://github.com/ccnmtl/fdfgen.git
