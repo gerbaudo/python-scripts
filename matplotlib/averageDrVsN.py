@@ -1,23 +1,29 @@
 #!/bin/env python
 
-# generate N objects uniformly distributed in (eta,phi), and look at the avg minimum separation
+# Generate N objects uniformly distributed in (eta,phi), and look at the avg minimum separation
 #
+# Requires pyroot and pylab
 #
+# davide.gerbaudo@gmail.com
+# Jan 2013
+
 import itertools, numpy as np
 import pylab as P
 import ROOT as r
 
+# configuration parameters [begin]
 nEvents = 10000
+possibleNobjects = [2, 4, 6, 8]
 etaRange, phiRange = [-2., +2.], [0., r.TMath.TwoPi()]
 etaMin, etaMax = etaRange[0], etaRange[1]
 phiMin, phiMax = phiRange[0], phiRange[1]
+# configuration parameters [end]
 
 allMinDists = []
 allAvgDists = []
 allMeanMinDists = []
 allMeanAvgDists = []
 
-possibleNobjects = [2,4,6]
 for nObj in possibleNobjects :
     objects = [r.TLorentzVector() for i in range(nObj)]
     avgDistances, minDistances = [], []
@@ -36,7 +42,7 @@ for nObj in possibleNobjects :
     allMeanAvgDists.append(meanAvg)
     print "%d objects/evt : <minDist>=%.2f, <avgDist>=%.2f" % (nObj, meanMin, meanAvg)
 
-print "allAvgDists[%d]"%len(allAvgDists)
+# plot distributions
 P.figure()
 P.title('Minimum distance')
 n, bins, patches = P.hist( allMinDists, 25, histtype='step',
