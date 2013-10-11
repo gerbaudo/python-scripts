@@ -165,10 +165,11 @@ class Directory:
         "Get a preformatted dump of the txt files in this directory"
         txtFiles = self.findTxtFiles()
         text = ""
+        basepath = self.getBasePath()
         if len(txtFiles)>0:
             for txtFile in txtFiles:
                 text += "<pre>"
-                text += commands.getoutput("cat %s" % txtFile)
+                text += commands.getoutput("cat %s/%s" % (basepath, txtFile))
                 text += "</pre>"
         return text
     def ulistPdf(self) :
