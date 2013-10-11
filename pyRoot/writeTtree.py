@@ -1,5 +1,7 @@
 #!/bin/env python
 
+# see http://wlav.web.cern.ch/wlav/pyroot/tpytree.html
+
 import array
 import ROOT as r
 
