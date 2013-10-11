@@ -128,7 +128,7 @@ class Directory:
         files = os.listdir(self.getBasePath())
         for ext in extensions:
             for file in files:
-                if file.count(ext) \
+                if file.endswith(ext) \
                        and not file.count("No such file") \
                        and not file == self.shortDescFile_:
                     extFiles.append(file)
