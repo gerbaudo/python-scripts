@@ -15,8 +15,6 @@
 # -----------
 #
 # Todo:
-# - add an option not to overwrite the current index.html, or to skip
-#   the directories that already have an index.html file.
 # - pass the hardcoded parameters on the command line.
 # - add link to "one level up"
 # - indent the html based on the directory depth
@@ -132,7 +130,7 @@ class Directory:
         htmlBody = ""    
         htmlBody += "<table cellspacing=\"10\">\n"
         htmlBody += "<tr>\n"
-        for imgFile in imgFiles:
+        for iImg, imgFile in enumerate(imgFiles):
             htmlBody += "<td>\n"
             htmlBody += "<a href=\"%s\">" % imgFile
             htmlBody += "<img src=\"%s\" width=\"%d\" height=\"%d\">" % (imgFile, thumbWidth, thumbHeight)
@@ -141,8 +139,7 @@ class Directory:
             htmlBody += "<h4>%s</h4>" % imgFile[:imgFile.rfind(".")]
             htmlBody += "</a>\n"
             htmlBody += "</td>\n"
-            if (imgFiles.index(imgFile)+1) % nColumns == 0:
-                htmlBody += "</tr>\n<tr>\n"
+            if (iImg+1) % nColumns == 0 : htmlBody += "</tr>\n<tr>\n"
         htmlBody += "</tr>\n"
         htmlBody += "</table>\n"
         return htmlBody
