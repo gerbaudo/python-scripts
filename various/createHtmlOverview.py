@@ -112,23 +112,14 @@ class Directory:
         "Print the html footer"
         return '\n'.join(['</body>',
                           '</html>'])
-    def findImages(self):
-        "Find the images in this directory"
-        imgExtensions = ["png", "jpg", "gif"]
-        imgFiles = []
-        for ext in imgExtensions:
-            files = os.listdir(self.getBasePath())
-            for file in files:
-                if file.count(ext) and not file.count("No such file"):
-                    imgFiles.append(file)
-        return imgFiles
     def findExtFiles(self, extensions=[]):
         "find the txt files in this directory"
         def isFileWithExt(f, extensions=extensions, ignore=[self.shortDescFile_,]) :
             return any(f.endswith(e) for e in extensions) and not any(f==n for n in ignore)
         return sorted(filter(isFileWithExt, os.listdir(self.getBasePath())))
-    def findTxtFiles(self):
-        return self.findExtFiles(extensions=['txt'])
+    def findTxtFiles(self, exts=['txt']) : return self.findExtFiles(exts)
+    def findImages(self, exts=['png', 'jpg', 'gif']) : return self.findExtFiles(exts)
+
     def getImgTable(self):
         "Provide an html table showing the images of this directory"
         nColumns = 2
