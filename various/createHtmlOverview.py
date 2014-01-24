@@ -132,7 +132,7 @@ class Directory:
                        and not file.count("No such file") \
                        and not file == self.shortDescFile_:
                     extFiles.append(file)
-        return extFiles
+        return sorted(extFiles)
     def findTxtFiles(self):
         return self.findExtFiles(extensions=['txt'])
     def getImgTable(self):
