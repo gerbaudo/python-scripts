@@ -124,15 +124,9 @@ class Directory:
         return imgFiles
     def findExtFiles(self, extensions=[]):
         "find the txt files in this directory"
-        extFiles = []
-        files = os.listdir(self.getBasePath())
-        for ext in extensions:
-            for file in files:
-                if file.endswith(ext) \
-                       and not file.count("No such file") \
-                       and not file == self.shortDescFile_:
-                    extFiles.append(file)
-        return sorted(extFiles)
+        def isFileWithExt(f, extensions=extensions, ignore=[self.shortDescFile_,]) :
+            return any(f.endswith(e) for e in extensions) and not any(f==n for n in ignore)
+        return sorted(filter(isFileWithExt, os.listdir(self.getBasePath())))
     def findTxtFiles(self):
         return self.findExtFiles(extensions=['txt'])
     def getImgTable(self):
