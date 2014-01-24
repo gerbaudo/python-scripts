@@ -15,7 +15,6 @@
 # -----------
 #
 # Todo:
-# - pass the hardcoded parameters on the command line.
 # - add link to "one level up"
 # - indent the html based on the directory depth
 
@@ -26,11 +25,13 @@ class Directory:
     """A directory object which knows its name, parent, and has a list of daughters.
     The directory might also have a short description associated with it,
     saying shortly what its contets are."""
-    def __init__(self,name,parent='',shortDescriptionFile="shortdescription.txt",verbose=False, overwrite=True):
-        "Constructor"
+    def __init__(self,name,parent='',shortDescriptionFile="shortdescription.txt",verbose=False, overwrite=True, columns=2, thumbWidth=400, thumbHeight=300):
         self.name_  = name
-        self.overwrite = overwrite
+        self.overwrite_ = overwrite
         self.parent_ = parent
+        self.columns_ = columns
+        self.thumbWidth_ = thumbWidth
+        self.thumbHeight_ = thumbHeight
         self.verbose_ = verbose
         self.shortDescFile_ = shortDescriptionFile
         self.shortdescription_ = ""
@@ -53,7 +54,7 @@ class Directory:
         names = os.listdir(basepath)
         for name in names:
             if os.path.isdir(basepath+'/'+name):
-                self.daughters_.append(Directory(name,self,self.shortDescFile_,self.verbose_))
+                self.daughters_.append(Directory(name,self,self.shortDescFile_,self.verbose_, self.overwrite_, self.columns_, self.thumbWidth_, self.thumbHeight_))
         if self.verbose_ : print "%s contains %d directories" % (self.name_,len(self.daughters_))
     def getBasePath(self):
         "Return a basepath by asking the parents where we are"
@@ -120,20 +121,17 @@ class Directory:
 
     def getImgTable(self):
         "Provide an html table showing the images of this directory"
-        nColumns = 2
-        thumbWidth=400
-        thumbHeight=300
-        #thumbHeight=400
+        nColumns = self.columns_
         imgFiles = self.findImages()
         if self.verbose_: print "%s %d images" % (self.name_,len(imgFiles))
         if not len(imgFiles): return ""
-        htmlBody = ""    
+        htmlBody = ""
         htmlBody += "<table cellspacing=\"10\">\n"
         htmlBody += "<tr>\n"
         for iImg, imgFile in enumerate(imgFiles):
             htmlBody += "<td>\n"
             htmlBody += "<a href=\"%s\">" % imgFile
-            htmlBody += "<img src=\"%s\" width=\"%d\" height=\"%d\">" % (imgFile, thumbWidth, thumbHeight)
+            htmlBody += "<img src=\"%s\" width=\"%d\" height=\"%d\">" % (imgFile, self.thumbWidth_, self.thumbHeight_)
             htmlBody += "</img>"
             htmlBody += "<br>\n"
             htmlBody += "<h4>%s</h4>" % imgFile[:imgFile.rfind(".")]
@@ -165,7 +163,7 @@ class Directory:
         - a table with all the images
         This function is also called recursively for all subdirectories"""
         filename = self.getBasePath()+"/"+outfile
-        if not self.overwrite and os.path.exists(filename) : return
+        if not self.overwrite_ and os.path.exists(filename) : return
         file = open(filename, 'w')
         file.write(self.htmlHeader()+"\n")
         file.write(self.htmlSubDirectoryTree()+"\n")
@@ -189,11 +187,17 @@ if __name__ == '__main__':
     parser.add_option("-v", "--verbose",
                       action="store_true", dest="verbose", default=False,
                       help="print status messages to stdout")
+    parser.add_option('-c', '--columns', default=2)
+    parser.add_option('-t', '--thumb', default='400x300', help='thumb size in px')
 
     (options, args) = parser.parse_args()
 
     verbose = options.verbose
     inputDir = options.input
+    cols = int(options.columns)
+    if options.thumb.count(' ') or options.thumb.count('x')!=1 : parser.error('thumb side should be something like NxM')
+    tW, tH = (int(v) for v in options.thumb.split('x'))
+
     overwrite = options.overwrite
-    topDir = Directory(inputDir,verbose=verbose,overwrite=overwrite)
+    topDir = Directory(inputDir,verbose=verbose,overwrite=overwrite, columns=cols, thumbWidth=tW, thumbHeight=tH)
     topDir.createHtmlIndex()
