@@ -19,3 +19,8 @@ treeBefUnf.Scan("mynum[0]:mynum[1]:mynum[9]")
     
 # for t in [treeBefUnf, treeAftUnf] :
 #     t.SetDirectory(outFile)
+
+outFile = r.TFile.Open('example_tree.root', 'recreate')
+outFile.cd()
+treeBefUnf.Write()
+outFile.Close()
