@@ -1,4 +1,4 @@
-#!/bin/env python
+#!/bin/env python3
 #
 # davide.gerbaudo@gmail.com
 #
@@ -68,8 +68,8 @@ def printSimpleCal(firstDay, paperFormat,
 		c.text(0.5*xMax, 0.1*yMax, "line half width")
 
 	day = firstDay
-	for iRow in xrange(nRows):
-		for iCol in xrange(nCols):
+	for iRow in range(nRows):
+		for iCol in range(nCols):
 			xPos =      (cellWidth*(iCol+0.5)) + xOffset
 			#yPos = 1. - (cellHeight*(iRow)) + yOffset
 			yPos = yMax - (0.5*headerHeight + cellHeight*(iRow)) + yOffset
@@ -100,7 +100,7 @@ def printSimpleCal(firstDay, paperFormat,
 			day += timedelta(days=1)
 
 	outFileName="cal-%s" % firstDay.strftime("%Y-%m-%d")
-	if verbose: print "saving output file %s.[ext]" % outFileName
+	if verbose: print("saving output file %s.[ext]" % outFileName)
 	if printPs: c.writeEPSfile(outFileName)
 	if printPdf: c.writePDFfile(outFileName)
 
@@ -142,21 +142,21 @@ if __name__=="__main__":
 	# try validate the options
 	firstDay = datetime.datetime.today()
 	if options.firstDay:
-		print options.firstDay
+		print(options.firstDay)
 		try:
 			firstDay =  time.strptime(options.firstDay, "%Y-%m-%d")
 			firstDay = datetime.datetime(*firstDay[:6]) # convert time to datetime
 			# the method above was lifted from:
 			# http://stackoverflow.com/questions/2428746/datetime-command-line-argument-in-python-2-4
 		except:
-			print "Invalid date format %s; should be YYYY-MM-DD.\n%s" % (options.firstDay,sys.exc_info())
+			print("Invalid date format %s; should be YYYY-MM-DD.\n%s" % (options.firstDay,sys.exc_info()))
 			sys.exit(1)
 
 	paperFormat = document.paperformat.A4
 	if options.paperFormat:
 		paperFormat = options.paperFormat
 		if not paperFormat in validPaperFormat:
-			print "Invalid paper format %s; should be %s" % (paperFormat, validPaperFormat)
+			print("Invalid paper format %s; should be %s" % (paperFormat, validPaperFormat))
 			syst.exit(1)
 		if paperFormat=="A4": paperFormat = document.paperformat.A4
 		if paperFormat=="Letter": paperFormat = document.paperformat.Letter
