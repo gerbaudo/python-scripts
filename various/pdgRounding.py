@@ -34,6 +34,7 @@ def pdgRound(value, error) :
         "Format the value; extraRound is meant for the special case of threeDigits>950"
         roundAt = nDigits-1-exponent - extraRound
         nDec = roundAt if exponent<nDigits else 0
+        nDec = max([nDec, 0])
         return ('%.'+str(nDec)+'f')%round(value,roundAt)
     tD = threeDigits(error)
     nD = nSignificantDigits(tD)
@@ -58,4 +59,5 @@ if __name__=='__main__' :
               ,(0.00827, 0.0000123)
               ,(0.00827, 0.0000456)
               ,(0.00827, 0.0000952)
+              ,(225.651, 96.1938)
               ] : test(x)
