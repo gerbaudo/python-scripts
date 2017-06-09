@@ -1,0 +1,74 @@
+#!/usr/bin/env python
+
+"""
+This script is lifted from
+github.com/elaird/supy/blob/master/bin/phaddy
+and just made into a standalone script.
+
+Purpose: hadd can be slow when merging a large number of files.
+This script makes it faster by running several sub-merge in parallel.
+
+davide.gerbaudo@gmail.com
+2017
+"""
+
+import sys,os,subprocess
+from multiprocessing import Process,JoinableQueue
+
+def main():
+    if len(sys.argv)<3 :
+        os.system(' '.join(['hadd']+sys.argv[1:]))
+        sys.exit()
+
+    nCores = 4
+    nMax = 20
+    options = ' '.join(filter(lambda a: a[0]=='-', sys.argv[1:]))
+    target = filter(lambda a: a[0]!='-', sys.argv[1:])[0]
+    sources = filter(lambda a: a[0]!='-', sys.argv[1:])[1:]
+    nJobs = 1 + len(sources)/nMax
+
+    commands = ['hadd %s %s %s'%(options,target+str(iJob),' '.join(sources[iJob::nJobs]))
+                for iJob in range(nJobs)]
+
+    operateOnListUsingQueue( nCores, qWorker(getCommandOutput), zip(commands) )
+
+    hAdd = getCommandOutput('hadd %s %s %s'%(options,target,' '.join(target+str(iJob) for iJob in range(nJobs))))
+    for iJob in range(nJobs) : os.remove(target+str(iJob))
+    sys.stderr.write(hAdd["stderr"])
+    sys.stdout.write(hAdd["stdout"])
+    sys.exit()
+
+def getCommandOutput(command):
+    p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    stdout,stderr = p.communicate()
+    return {"stdout":stdout, "stderr":stderr, "returncode":p.returncode}
+
+def operateOnListUsingQueue(nCores,workerFunc,inList,daemon=True) :
+    q = JoinableQueue()
+    listOfProcesses=[]
+    for i in range(nCores):
+        p = Process(target = workerFunc, args = (q,))
+        p.daemon = daemon
+        p.start()
+        listOfProcesses.append(p)
+    map(q.put,inList)
+    q.join()# block until all tasks are done
+    #clean up
+    for process in listOfProcesses :
+        process.terminate()
+
+class qWorker(object) :
+    def __init__(self,func = None) : self.func = func
+    def __call__(self,q) :
+        while True:
+            item = q.get()
+            try:
+                if self.func : self.func(*item)
+                else: item()
+            except Exception as e:
+                traceback.print_tb(sys.exc_info()[2], limit=20, file=sys.stdout)
+                print e.__class__.__name__,":", e
+            q.task_done()
+
+if __name__=='__main__':
+    main()
