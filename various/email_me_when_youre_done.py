@@ -7,8 +7,8 @@
 
 import optparse
 import os
+import subprocess
 from time import sleep
-from utils import getCommandOutput
 
 def main() :
     parser = optparse.OptionParser()
@@ -47,6 +47,12 @@ def main() :
         out = getCommandOutput(opts.exec_cmd)
         print out['stdout']
         print out['stderr']
+
+def getCommandOutput(command):
+    "lifted from supy (https://github.com/elaird/supy/blob/master/utils/io.py)"
+    p = subprocess.Popen(command, shell = True, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
+    stdout,stderr = p.communicate()
+    return {"stdout":stdout, "stderr":stderr, "returncode":p.returncode}
 
 if __name__=='__main__' :
     main()
